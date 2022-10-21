@@ -1,25 +1,56 @@
-import { Link } from "@remix-run/react";
-import { redirect } from "@remix-run/node";
+import { Link, useActionData } from "@remix-run/react";
+import { redirect, json } from "@remix-run/node";
 import { db } from "~/utils/db.server";
+import { getUser } from "~/utils/session.server";
+
+function validateTitle(title) {
+  if (typeof title !== "string" || title.length < 1) {
+    return "Title should not be empty.";
+  }
+}
+
+function validateBody(body) {
+  if (typeof body !== "string" || body.length < 10) {
+    return "Body should be at least 10 characters long";
+  }
+}
+
+function badRequest(data) {
+  return json(data, { status: 400 });
+}
 
 export const action = async ({ request }) => {
   // console.log("Redirect");
   const form = await request.formData();
   const title = form.get("title");
   const body = form.get("body");
+  const user = await getUser(request);
 
   const fields = { title, body };
   // console.log(fields);
 
   // @todo - submit to database
 
-  const post = await db.post.create({ data: fields });
+  const fieldErrors = {
+    title: validateTitle(title),
+    body: validateBody(body),
+  };
+  if (Object.values(fieldErrors).some(Boolean)) {
+    console.log(fieldErrors);
+    // return json({ fieldErrors, fields }, { status: 400 });
+    return badRequest({ fieldErrors, fields });
+  }
+
+  // const post = await db.post.create({ data: fields });
+  const post = await db.post.create({ data: { ...fields, userId: user.id } });
 
   // return redirect("/posts");
   return redirect(`/posts/${post.id}`);
 };
 
 function NewPost() {
+  const actionData = useActionData();
+
   return (
     <>
       <div className="page-header">
@@ -32,11 +63,31 @@ function NewPost() {
         <form method="POST">
           <div className="form-control">
             <label htmlFor="title">Title</label>
-            <input type="text" name="title" id="title" />
+            <input
+              type="text"
+              name="title"
+              id="title"
+              defaultValue={actionData?.fields?.title}
+            />
+            <div className="error">
+              <p>
+                {actionData?.fieldErrors?.title &&
+                  actionData?.fieldErrors?.title}
+              </p>
+            </div>
           </div>
           <div className="form-control">
             <label htmlFor="body">Post Body</label>
-            <textarea name="body" id="body" />
+            <textarea
+              name="body"
+              id="body"
+              defaultValue={actionData?.fields?.body}
+            />
+            <div className="error">
+              <p>
+                {actionData?.fieldErrors?.body && actionData?.fieldErrors?.body}
+              </p>
+            </div>
           </div>
           <button type="submit" className="btn btn-block">
             Add Post

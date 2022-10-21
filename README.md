@@ -58,7 +58,7 @@ cp -R ../my-old-remix-app/app app
 
 # Remix Crash Course (Blog App)
 
-This is a project from the [YouTube crash course](https://www.youtube.com/watch?v=d_BhzHVV4aQ). It includes the Remix Run framework. Building a blog app with Prisma and Sqlite.
+This is a project from the [YouTube crash course](https://www.youtube.com/watch?v=d_BhzHVV4aQ). It includes the Remix Run framework. Building a blog app with Prisma and Sqlite as well as user authentication.
 
 ## Usage
 
@@ -75,6 +75,36 @@ npm run dev
 ```
 
 ### Setup Database
+
+```sh
+npx prisma db push
+```
+
+### Prisma Studio
+
+to view database
+
+```
+npx prisma studio
+```
+
+### Install bcrypt
+
+use to hash passwords
+
+```
+npm i bcrypt
+```
+
+Rename .envexample to .env and change session secret
+
+Load .env variables
+
+```sh
+npx prisma generate
+```
+
+Setup Database
 
 ```sh
 npx prisma db push
